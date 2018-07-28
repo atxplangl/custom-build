@@ -1,0 +1,86 @@
+<project name="ProductFactoryScripts" default="all" basedir=".">
+  <property file="build.properties" />
+
+<!--  <property name="rpm.Name" value="ProductFactoryScripts"/>
+  <property name="rpm.Version" value="09.10.0"/>
+  <property name="rpm.TopDir" location="${basedir}/.rpm"/>
+
+-->
+
+  <target name="init">
+    <tstamp/>
+  </target>
+
+  <target name="clean" depends="rpm-clean">
+    <delete dir="${tempdir_classes}/classes"/>
+    <delete dir="${tempdir_classes}"/>
+    <delete dir="${output_jardir}"/> 
+  </target>
+
+
+<!-- ========================= RPM Clean Target ======================== -->
+    <target name="rpm-clean" description="Cleans previous rpm build">
+        <delete includeEmptyDirs="true" failonerror="false">
+            <fileset file="${rpm.Name}-${rpm.Version}.tar.gz"/>
+            <fileset file="../${rpm.Name}-${rpm.Version}.tar.gz"/>
+            <fileset file="${rpm.Name}-${rpm.Version}.src.tar"/>
+            <fileset dir="./${rpm.Name}-${rpm.Version}"/>
+            <fileset dir="../${rpm.Name}-${rpm.Version}"/>
+            <fileset dir="${rpm.TopDir}/"/>
+        </delete>
+    </target>
+
+<!-- ========================= RPM Tarball Target ======================== -->
+    <target name="tarball" depends="rpm-clean" description="Creates Tarball for rpm.">
+        <mkdir dir="../${rpm.Name}-${rpm.Version}/"/>
+        <copy todir="../${rpm.Name}-${rpm.Version}">
+            <fileset dir="./" casesensitive="no">
+                <include name="*.*"/>
+                <include name="**/*"/>
+            </fileset>		
+        </copy>		
+        <mkdir dir="./${rpm.Name}-${rpm.Version}/"/>
+        <copy todir="./${rpm.Name}-${rpm.Version}/">
+            <fileset dir="../${rpm.Name}-${rpm.Version}"/>
+        </copy>		
+        <tar destfile="${basedir}/${rpm.Name}-${rpm.Version}.tar.gz" 
+                  longfile="gnu" compression="gzip">
+            <tarfileset dir="${basedir}/${rpm.Name}-${rpm.Version}" prefix="${rpm.Name}-${rpm.Version}">
+                <include name="**/**"/>
+                <include name="*.*"/>
+            </tarfileset>
+        </tar>
+    </target>
+
+
+<!-- ============================ RPM Prep Target ======================== -->
+    <target name="rpm-prep" depends="tarball" description="Set up the local RPM build environment">
+        <delete includeEmptyDirs="true" failonerror="false">
+            <fileset dir="${rpm.TopDir}/"/>
+        </delete>
+        <mkdir dir="${rpm.TopDir}/"/>
+        <mkdir dir="${rpm.TopDir}/BUILD"/>
+        <mkdir dir="${rpm.TopDir}/RPMS"/>
+        <mkdir dir="${rpm.TopDir}/SOURCES"/>
+        <mkdir dir="${rpm.TopDir}/SPECS"/>
+        <mkdir dir="${rpm.TopDir}/SRPMS"/>
+        <!-- Put the required files in the proper location. -->
+        <copy file="${basedir}/${rpm.Name}-${rpm.Version}.tar.gz" todir="${rpm.TopDir}/SOURCES" />
+        <copy file="${basedir}/${rpm.Name}.spec" todir="${rpm.TopDir}/SPECS" />
+    </target>
+
+<!-- ========================== RPM Build Target ========================= -->
+    <target name="rpm" depends="rpm-prep" description="Build the RPM">
+        <rpm specFile="${rpm.Name}.spec" topDir="${rpm.TopDir}" command="-ba --define 'version ${rpm.Version}' --define 'release ${rpm.Release}${rpm.AutoRelease}' --define '_rpmname ${rpm.Name}'"/>
+
+
+<!-- -define "_topdir $BUILDDIR/" -define "rpmname $NAME" -define "rpmver $VERSION" -define "rpmrelease $AutoRelease"  -->
+
+        <delete includeEmptyDirs="true" failonerror="false">
+            <fileset file="${rpm.Name}-${rpm.Version}.src.tar"/>
+            <fileset file="${rpm.Name}-${rpm.Version}.tar.gz"/>
+            <fileset dir="./${rpm.Name}-${rpm.Version}"/>
+            <fileset dir="../${rpm.Name}-${rpm.Version}"/>
+        </delete>
+     </target>
+</project>
