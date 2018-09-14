@@ -84,7 +84,6 @@ pipeline {
                      always {
                          script {
                             currentBuild.result = currentBuild.result ?: 'SUCCESS'
-                            notifyBitbucket commitSha1: '', considerUnstableAsSuccess: false, credentialsId: '13c82382-74b8-4c8f-872f-e05a8074617a', disableInprogressNotification: true, ignoreUnverifiedSSLPeer: true, includeBuildNumberInKey: false, prependParentProjectKey: false, projectKey: '', stashServerBaseUrl: 'https://stash.acxiom.com'
                             cleanWs()
                             SlackBuildNotify(currentBuild.currentResult)
                          }
